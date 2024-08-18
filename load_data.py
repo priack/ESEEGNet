@@ -8,10 +8,6 @@ The data is already pre-processed when loaded. The steps that are followed are:
     - Reorder channels into 2D matrix (+ time)
 This results in a 4D matrix (nSamples, d1, d2, time) that is saved alongside the labels of each sample.
 """
-
-
-#print('conda activate memory_eeg in anaiads')
-# Imports
 import mne
 from copy import copy
 import numpy as np
