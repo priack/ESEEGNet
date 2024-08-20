@@ -26,7 +26,7 @@ def load_single(fname: str, classes: list[str]) -> mne.Epochs:
     :return: Valid epochs of the given file.
     """
     epochs = mne.read_epochs(fname, verbose=False)
-    epochs.drop_channels(ch_names=['Iz','F7', 'F8', 'FT7', 'FT8', 'T7', 'T8', 'TP7', 'TP8', 'P7', 'P8', 'P9', 'P10', 'Status'])
+    epochs.drop_channels(ch_names=['Iz', 'Fp1', 'Fp2', 'Fpz', 'F7', 'F8', 'FT7', 'FT8', 'T7', 'T8', 'TP7', 'TP8', 'P7', 'P8', 'P9', 'P10', 'Status'])
     epochs.apply_baseline(baseline=(-0.2, 0))
     epochs.resample(64)
     # If you only want two classes, you can get them like this: (otherwise you have the three classes in 'epochs')
@@ -47,7 +47,7 @@ def load_all(subjects: list[str], classes: list[str]) -> tuple[mne.Epochs, np.nd
     for i, subject in enumerate(subjects):
         print('*' * 20)
         print(f'Subject {subject}({i+1}/{len(subjects)})')
-        single = load_single(f'data/epochs_subj{subject}-epo.fif', classes)
+        single = load_single(f'../data/epochs_subj{subject}-epo.fif', classes)
         epochs_all.append(single)
         subj.append(np.zeros((len(single), 1)) + i)
     subj = np.concatenate(subj)
@@ -72,7 +72,7 @@ def reshape_data(epochs: mne.epochs, subj: np.ndarray) -> dict[str: np.ndarray, 
     for k,v in rename.items():
         channel[channel.index(k)] = v
 
-    row = {'Fp': 0, 'AF': 1, 'F': 2, 'FC': 3, 'C': 4, 'CP': 5, 'P': 6, 'PO': 7, 'O': 8}
+    row = {'AF': 0, 'F': 1, 'FC': 2, 'C': 3, 'CP': 4, 'P': 5, 'PO': 6, 'O': 7}
     col = {'5': 0, '3': 1, '1': 2, 'z': 3, '2': 4, '4': 5, '6': 6}
     tr, ch, tlen = x.shape
     xImage = np.zeros((tr, len(row), len(col), tlen))
@@ -85,7 +85,7 @@ def reshape_data(epochs: mne.epochs, subj: np.ndarray) -> dict[str: np.ndarray, 
         xImage[:, r, c, :] = x[:, i, :]
 
     data = {'x': xImage, 'y': y, 'subj': subj}
-    with open('data/full_classReady.dill', 'wb') as f:
+    with open('../data/full_classReady.dill', 'wb') as f:
         dill.dump(data, f)
     return data
 
