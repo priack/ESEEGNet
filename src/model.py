@@ -36,7 +36,8 @@ def ESEEGNet(shape: tuple) -> Model:
     """
     dropRate = 0.4
     nTimeFilters = 8
-    nSpaceFilters = 12
+    nSpaceFilters = 6
+    nDownTimeFilters = 6
     nFeatures = 14
     batch, d1, d2, t = shape
     # Shape [Batch, d1, d2, t]
@@ -56,19 +57,17 @@ def ESEEGNet(shape: tuple) -> Model:
     xLong = convolution_block(inputs, nTimeFilters, (1, 64), 32, dropRate, 'LongTimeFilters')
     xLong = time_convolution_stack(xLong, 3, 2, dropRate, 'LongTimeReduction')
     # Shape [Batch, d1 * d2, nTimeFilters * 3]
-    xERPMap = Concatenate(axis=-1)([xShort, xMedium, xLong])
+    x = Concatenate(axis=-1)([xShort, xMedium, xLong])
     # Shape [Batch, d1, d2, nTimeFilters * 3]
-    xERPMap = tf.reshape(xERPMap, (batch, d1, d2, nTimeFilters * 3))
-
-    xSmall = convolution_block(xERPMap, nSpaceFilters, 3, 1, dropRate, 'SmallSizeFilters')
+    x = tf.reshape(x, (batch, d1, d2, nTimeFilters * 3))
+    # Shape [Batch, d1, d2, nDownTimeFilters]
+    x = Conv2D(nDownTimeFilters, (1, 1), name='SpaceReduction')(x)
+    xSmall = convolution_block(x, nSpaceFilters, 3, 1, dropRate, 'SmallSizeFilters')
     xSmall = Flatten(name='SmallFeatures')(xSmall)
-
-
-
     # Shape [Batch, features]
     # feats = Concatenate(axis=-1)([xSmall, xMid, xLarge])
-    hidden = Dense(nFeatures, activation='relu')(xSmall)
-    output = Dense(2, activation='softmax')(hidden)
+    hidden = Dense(nFeatures, activation='relu', name='Hidden')(xSmall)
+    output = Dense(2, activation='softmax', name='Softmax')(hidden)
 
     mdl = Model(inputs=inputs, outputs=output)
     mdl.summary()
