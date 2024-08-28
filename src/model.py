@@ -64,8 +64,8 @@ def ESEEGNet(shape: tuple) -> Model:
     # Shape [Batch, features]
     # feats = Concatenate(axis=-1)([xSmall, xMid, xLarge])
     hidden = Dense(nFeatures, activation='relu', name='Hidden')(xSmall)
-    output = Dense(2, activation='softmax', name='Softmax')(hidden)
+    output = Dense(1, activation='softmax', name='Softmax')(hidden)
 
     mdl = Model(inputs=inputs, outputs=output)
-    mdl.summary()
+    # mdl.summary()
     return mdl
